@@ -1,0 +1,10 @@
+{
+  "name": "みてね2分カット",
+  "short_name": "2分カット",
+  "description": "長い動画をみてね向けに約2分ごとへ整えるツール",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f7f2",
+  "theme_color": "#277f78",
+  "lang": "ja"
+}

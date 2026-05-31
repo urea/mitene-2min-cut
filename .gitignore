@@ -1,0 +1,17 @@
+node_modules/
+dist/
+.env
+.env.*
+*.local
+
+app/node_modules/
+app/dist/
+app/.vite/
+app/.playwright-cli/
+app/.vite-dev.log
+app/public/ffmpeg/
+
+doc/
+
+.DS_Store
+Thumbs.db
