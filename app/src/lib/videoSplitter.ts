@@ -190,7 +190,7 @@ function getSupportedExtension(fileName: string) {
 function buildOutputFileName(stem: string, index: number, total: number, extension: string) {
   const safeStem = stem.trim() || 'video'
   const width = Math.max(2, String(total).length)
-  return `${safeStem}_mitene_${String(index).padStart(width, '0')}of${String(total).padStart(width, '0')}.${extension}`
+  return `${safeStem}_${String(index).padStart(width, '0')}of${String(total).padStart(width, '0')}.${extension}`
 }
 
 function mimeTypeForExtension(extension: string) {

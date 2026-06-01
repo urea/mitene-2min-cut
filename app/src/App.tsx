@@ -49,6 +49,45 @@ export function App() {
   const pickActionState = hasVideo ? 'done' : 'active'
   const splitActionState = !hasVideo ? 'pending' : hasOutputs ? 'done' : 'active'
   const saveActionState = hasOutputs ? 'active' : 'pending'
+  const actionStatus = (() => {
+    if (isProcessing && splitProgress) {
+      return {
+        title: splitProgress.message,
+        detail: `${Math.round(splitProgress.progress * 100)}%`,
+        progress: splitProgress.progress,
+      }
+    }
+
+    if (hasOutputs) {
+      return {
+        title: `${outputs.length}本の動画を作成しました`,
+        detail: '保存できます。作成した動画は保存するまでブラウザ内の一時データです。',
+        progress: 1,
+      }
+    }
+
+    if (video && plan) {
+      return {
+        title: `${plan.segments.length}本に分けます`,
+        detail: '内容を確認したら分割できます。',
+        progress: null,
+      }
+    }
+
+    if (video) {
+      return {
+        title: '動画を確認しています',
+        detail: '長さを読み取っています。',
+        progress: null,
+      }
+    }
+
+    return {
+      title: '動画を選んでください',
+      detail: '端末内で確認して、みてね向けの長さに整えます。',
+      progress: null,
+    }
+  })()
 
   const handlePickVideo = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -196,13 +235,14 @@ export function App() {
               すべて保存
             </button>
           </div>
-          <div className="status-row" aria-label="処理方針">
-            {STATUS_ITEMS.map((item) => (
-              <span key={item}>
-                <Check size={15} aria-hidden="true" />
-                {item}
-              </span>
-            ))}
+          <div className="action-status" aria-live="polite">
+            <div>
+              <strong>{actionStatus.title}</strong>
+              <span>{actionStatus.detail}</span>
+            </div>
+            {typeof actionStatus.progress === 'number' ? (
+              <progress value={actionStatus.progress} max={1} />
+            ) : null}
           </div>
         </div>
 
@@ -211,8 +251,8 @@ export function App() {
         {video ? (
           <section className="result-grid" aria-label="選択した動画">
             <div className="summary-panel">
-              <p className="section-label">選択中の動画</p>
-              <h2>{video.fileName}</h2>
+              <p className="section-label">選択した動画</p>
+              <h2>動画を読み込みました</h2>
               <dl className="meta-list">
                 <div>
                   <dt>長さ</dt>
@@ -225,6 +265,10 @@ export function App() {
                 <div>
                   <dt>サイズ</dt>
                   <dd>{formatFileSize(video.fileSize)}</dd>
+                </div>
+                <div>
+                  <dt>端末から渡された名前</dt>
+                  <dd>{video.fileName}</dd>
                 </div>
                 <div>
                   <dt>ファイル更新日時</dt>
@@ -265,19 +309,17 @@ export function App() {
             <div>
               <h2>動画は外部に送信しません</h2>
               <p>ブラウザ上で動画情報を確認し、分割処理も端末内で完結させる方針です。</p>
+              <div className="status-row" aria-label="処理方針">
+                {STATUS_ITEMS.map((item) => (
+                  <span key={item}>
+                    <Check size={15} aria-hidden="true" />
+                    {item}
+                  </span>
+                ))}
+              </div>
             </div>
           </section>
         )}
-
-        {splitProgress ? (
-          <section className="progress-panel" aria-live="polite">
-            <div>
-              <strong>{splitProgress.message}</strong>
-              <span>{Math.round(splitProgress.progress * 100)}%</span>
-            </div>
-            <progress value={splitProgress.progress} max={1} />
-          </section>
-        ) : null}
 
         {splitError ? <p className="error-text">{splitError}</p> : null}
 
@@ -285,11 +327,9 @@ export function App() {
           <section className="downloads-panel" aria-label="作成した動画">
             <div className="downloads-header">
               <div>
-                <p className="section-label">作成完了</p>
-                <h2>{outputs.length}本の動画を作成しました</h2>
-                <p>
-                  元の動画は変更していません。作成した動画は保存するまでブラウザ内の一時データです。
-                </p>
+                <p className="section-label">作成した動画</p>
+                <h2>保存対象の一覧</h2>
+                <p>元の動画は変更していません。</p>
               </div>
             </div>
             <ol className="download-list">

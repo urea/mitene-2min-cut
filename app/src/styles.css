@@ -93,7 +93,9 @@ h2 {
 
 .intro p,
 .panel-note,
-.empty-state p {
+.empty-state p,
+.action-status span,
+.downloads-panel p:not(.section-label) {
   color: var(--muted);
   line-height: 1.7;
 }
@@ -101,7 +103,6 @@ h2 {
 .upload-panel,
 .summary-panel,
 .empty-state,
-.progress-panel,
 .downloads-panel {
   border: 1px solid var(--line);
   background: rgb(255 255 255 / 86%);
@@ -195,6 +196,52 @@ h2 {
   place-items: center;
   color: #c44736;
   pointer-events: none;
+}
+
+.action-status {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #fff;
+}
+
+.action-status div {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.action-status strong {
+  color: var(--accent-strong);
+}
+
+.action-status span {
+  text-align: right;
+}
+
+.action-status progress {
+  width: 100%;
+  height: 10px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  background: var(--accent-soft);
+}
+
+.action-status progress::-webkit-progress-bar {
+  background: var(--accent-soft);
+}
+
+.action-status progress::-webkit-progress-value {
+  border-radius: 999px;
+  background: var(--accent);
+}
+
+.action-status progress::-moz-progress-bar {
+  border-radius: 999px;
+  background: var(--accent);
 }
 
 .status-row {
@@ -320,46 +367,13 @@ h2 {
   color: var(--text);
 }
 
+.empty-state .status-row {
+  margin-top: 14px;
+}
+
 .error-text {
   color: #a33a2b;
   font-weight: 700;
-}
-
-.progress-panel {
-  display: grid;
-  gap: 10px;
-  padding: 18px;
-  border-radius: 16px;
-}
-
-.progress-panel div {
-  display: flex;
-  justify-content: space-between;
-  gap: 16px;
-  color: var(--accent-strong);
-}
-
-.progress-panel progress {
-  width: 100%;
-  height: 12px;
-  overflow: hidden;
-  border: 0;
-  border-radius: 999px;
-  background: var(--accent-soft);
-}
-
-.progress-panel progress::-webkit-progress-bar {
-  background: var(--accent-soft);
-}
-
-.progress-panel progress::-webkit-progress-value {
-  border-radius: 999px;
-  background: var(--accent);
-}
-
-.progress-panel progress::-moz-progress-bar {
-  border-radius: 999px;
-  background: var(--accent);
 }
 
 .downloads-panel {
@@ -367,11 +381,6 @@ h2 {
   gap: 18px;
   padding: 22px;
   border-radius: 18px;
-}
-
-.downloads-panel p:not(.section-label) {
-  color: var(--muted);
-  line-height: 1.7;
 }
 
 .downloads-header {
@@ -413,15 +422,25 @@ h2 {
     padding: 18px;
   }
 
-  .intro,
   .empty-state,
   .result-grid {
     grid-template-columns: 1fr;
   }
 
+  .intro {
+    gap: 12px;
+    padding-top: 10px;
+  }
+
   .brand-mark {
-    width: 48px;
-    height: 48px;
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  h1 {
+    font-size: 2rem;
+    line-height: 1.02;
   }
 
   .action-flow {
@@ -433,12 +452,17 @@ h2 {
     transform: rotate(90deg);
   }
 
-  .progress-panel div,
+  .action-status div,
   .downloads-header {
     grid-template-columns: 1fr;
   }
 
-  .progress-panel div {
+  .action-status div {
     flex-direction: column;
+    gap: 4px;
+  }
+
+  .action-status span {
+    text-align: left;
   }
 }
