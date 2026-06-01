@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, DragEvent } from 'react'
 import { ArrowRight, Check, Download, Film, FolderOpen, Scissors, ShieldCheck } from 'lucide-react'
 import { formatClockDuration, formatDateTime, formatFileSize } from './lib/format'
 import { createSplitPlan } from './lib/splitPlan'
@@ -21,8 +21,10 @@ export function App() {
   const [splitProgress, setSplitProgress] = useState<SplitProgress | null>(null)
   const [splitError, setSplitError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [isDragActive, setIsDragActive] = useState(false)
   const [metadataError, setMetadataError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const dragDepthRef = useRef(0)
 
   useEffect(() => {
     return () => {
@@ -50,6 +52,14 @@ export function App() {
   const splitActionState = !hasVideo ? 'pending' : hasOutputs ? 'done' : 'active'
   const saveActionState = hasOutputs ? 'active' : 'pending'
   const actionStatus = (() => {
+    if (isDragActive && canPickVideo) {
+      return {
+        title: 'ここにドロップできます',
+        detail: 'MP4、MOV、M4Vの動画を選択します。',
+        progress: null,
+      }
+    }
+
     if (isProcessing && splitProgress) {
       return {
         title: splitProgress.message,
@@ -84,15 +94,12 @@ export function App() {
 
     return {
       title: '動画を選んでください',
-      detail: '端末内で確認して、みてね向けの長さに整えます。',
+      detail: 'ボタンで選ぶか、PCではこのエリアへドロップできます。',
       progress: null,
     }
   })()
 
-  const handlePickVideo = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-
+  const selectVideoFile = (file: File) => {
     if (objectUrl) URL.revokeObjectURL(objectUrl)
 
     const url = URL.createObjectURL(file)
@@ -125,11 +132,53 @@ export function App() {
     probe.onerror = () => {
       setMetadataError('動画の長さを読み取れませんでした。別の動画で試してください。')
     }
+  }
+
+  const handlePickVideo = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (file) selectVideoFile(file)
 
     event.target.value = ''
   }
 
   const openPicker = () => inputRef.current?.click()
+
+  const handleDragEnter = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    if (!canPickVideo) return
+
+    dragDepthRef.current += 1
+    setIsDragActive(true)
+  }
+
+  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = canPickVideo ? 'copy' : 'none'
+  }
+
+  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    if (!canPickVideo) return
+
+    dragDepthRef.current = Math.max(0, dragDepthRef.current - 1)
+    if (dragDepthRef.current === 0) setIsDragActive(false)
+  }
+
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault()
+    dragDepthRef.current = 0
+    setIsDragActive(false)
+
+    if (!canPickVideo) return
+
+    const file = Array.from(event.dataTransfer.files).find(isSupportedDropFile)
+    if (!file) {
+      setMetadataError('MP4、MOV、M4Vの動画ファイルをドロップしてください。')
+      return
+    }
+
+    selectVideoFile(file)
+  }
 
   const handleSplit = async () => {
     if (!video?.file || !plan || isProcessing) return
@@ -186,7 +235,15 @@ export function App() {
           </div>
         </div>
 
-        <div className="upload-panel">
+        <div
+          className="upload-panel"
+          data-drag-active={isDragActive ? 'true' : 'false'}
+          onDragEnter={handleDragEnter}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          aria-label="動画の選択と分割操作"
+        >
           <input
             ref={inputRef}
             hidden
@@ -351,4 +408,8 @@ export function App() {
       </section>
     </main>
   )
+}
+
+function isSupportedDropFile(file: File) {
+  return /\.(mp4|mov|m4v)$/i.test(file.name)
 }

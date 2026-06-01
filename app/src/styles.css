@@ -115,6 +115,18 @@ h2 {
   gap: 16px;
   padding: 22px;
   border-radius: 20px;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.upload-panel[data-drag-active='true'] {
+  border-color: rgb(39 127 120 / 70%);
+  background: rgb(230 243 240 / 92%);
+  box-shadow:
+    var(--shadow),
+    inset 0 0 0 2px rgb(39 127 120 / 22%);
 }
 
 .action-flow {
