@@ -285,6 +285,18 @@ h2 {
   border-radius: 18px;
 }
 
+.video-thumbnail {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  display: block;
+  margin-top: 16px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-strong);
+  object-fit: cover;
+}
+
 .accent-panel {
   background: var(--surface-strong);
   color: #fff;

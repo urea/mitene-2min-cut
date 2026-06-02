@@ -345,6 +345,16 @@ export function App() {
             <div className="summary-panel">
               <p className="section-label">選択した動画</p>
               <h2>動画を読み込みました</h2>
+              {objectUrl ? (
+                <video
+                  className="video-thumbnail"
+                  src={objectUrl}
+                  muted
+                  playsInline
+                  preload="metadata"
+                  aria-label="選択した動画のサムネイル"
+                />
+              ) : null}
               <dl className="meta-list">
                 <div>
                   <dt>長さ</dt>
