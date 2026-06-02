@@ -2,6 +2,7 @@ export type SelectedVideo = {
   file: File
   fileName: string
   fileSize: number
-  lastModified: Date
+  captureTime: Date | null
+  isCaptureTimeLoading: boolean
   durationSeconds: number | null
 }

@@ -25,10 +25,11 @@ export type SplitOutput = {
 type SplitVideoOptions = {
   file: File
   segments: SplitSegment[]
+  captureTime?: Date | null
   onProgress?: (progress: SplitProgress) => void
 }
 
-export async function splitVideo({ file, segments, onProgress }: SplitVideoOptions) {
+export async function splitVideo({ file, segments, captureTime, onProgress }: SplitVideoOptions) {
   if (segments.length === 0) return []
 
   const extension = getSupportedExtension(file.name)
@@ -72,8 +73,12 @@ export async function splitVideo({ file, segments, onProgress }: SplitVideoOptio
     onProgress?.({ stage: 'writing', message: '動画を端末内の作業領域に読み込んでいます。', progress: 0 })
     await ffmpeg.writeFile(inputName, await fetchFile(file))
 
-    onProgress?.({ stage: 'probing', message: '撮影日時を確認しています。', progress: 0 })
-    const baseCaptureTime = await readCreationTime(ffmpeg, inputName, logs, file.lastModified)
+    if (!captureTime) {
+      onProgress?.({ stage: 'probing', message: '撮影日時を確認しています。', progress: 0 })
+    }
+
+    const baseCaptureTime =
+      captureTime ?? (await readCreationTime(ffmpeg, inputName, logs, file.lastModified))
 
     for (const segment of segments) {
       activeSegment = segment.index

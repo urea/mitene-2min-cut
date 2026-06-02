@@ -3,6 +3,7 @@ import type { ChangeEvent, DragEvent } from 'react'
 import { ArrowRight, Check, Download, Film, FolderOpen, Scissors, ShieldCheck } from 'lucide-react'
 import { formatClockDuration, formatDateTime, formatFileSize } from './lib/format'
 import { createSplitPlan } from './lib/splitPlan'
+import { readVideoCaptureTime } from './lib/videoMetadata'
 import { splitVideo } from './lib/videoSplitter'
 import type { SplitOutput, SplitProgress } from './lib/videoSplitter'
 import type { SelectedVideo } from './types/video'
@@ -25,6 +26,7 @@ export function App() {
   const [metadataError, setMetadataError] = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const dragDepthRef = useRef(0)
+  const metadataRequestRef = useRef(0)
 
   useEffect(() => {
     return () => {
@@ -100,6 +102,9 @@ export function App() {
   })()
 
   const selectVideoFile = (file: File) => {
+    const metadataRequestId = metadataRequestRef.current + 1
+    metadataRequestRef.current = metadataRequestId
+
     if (objectUrl) URL.revokeObjectURL(objectUrl)
 
     const url = URL.createObjectURL(file)
@@ -112,9 +117,38 @@ export function App() {
       file,
       fileName: file.name,
       fileSize: file.size,
-      lastModified: new Date(file.lastModified),
+      captureTime: null,
+      isCaptureTimeLoading: true,
       durationSeconds: null,
     })
+
+    void readVideoCaptureTime(file)
+      .then((captureTime) => {
+        if (metadataRequestRef.current !== metadataRequestId) return
+
+        setVideo((current) =>
+          current?.file === file
+            ? {
+                ...current,
+                captureTime,
+                isCaptureTimeLoading: false,
+              }
+            : current,
+        )
+      })
+      .catch(() => {
+        if (metadataRequestRef.current !== metadataRequestId) return
+
+        setVideo((current) =>
+          current?.file === file
+            ? {
+                ...current,
+                captureTime: null,
+                isCaptureTimeLoading: false,
+              }
+            : current,
+        )
+      })
 
     const probe = document.createElement('video')
     probe.preload = 'metadata'
@@ -191,6 +225,7 @@ export function App() {
       const splitOutputs = await splitVideo({
         file: video.file,
         segments: plan.segments,
+        captureTime: video.captureTime,
         onProgress: setSplitProgress,
       })
 
@@ -328,8 +363,14 @@ export function App() {
                   <dd>{video.fileName}</dd>
                 </div>
                 <div>
-                  <dt>ファイル更新日時</dt>
-                  <dd>{video.lastModified.toLocaleString('ja-JP')}</dd>
+                  <dt>撮影日時</dt>
+                  <dd>
+                    {video.captureTime
+                      ? formatDateTime(video.captureTime)
+                      : video.isCaptureTimeLoading
+                        ? '確認中'
+                        : '取得できませんでした'}
+                  </dd>
                 </div>
               </dl>
             </div>
